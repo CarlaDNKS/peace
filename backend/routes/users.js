@@ -339,7 +339,7 @@ router.put("/updateProfile", async (req, res) => {
 router.post("/uploadpicture/:usertoken", async (req, res) => {
   try {
     // Crée un chemin temporaire pour sauvegarder l'image avant de la télécharger sur Cloudinary
-    const photoPath = `./tmp/${uniqid()}.jpg`;
+    const photoPath = `/tmp/${uniqid()}.jpg`;
 
     // Déplace le fichier reçu depuis le frontend vers le chemin temporaire
     const resultMove = await req.files.photoFromFront.mv(photoPath);
