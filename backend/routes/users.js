@@ -79,7 +79,7 @@ router.post("/signin", (req, res) => {
       return;
     }
  
-    let redirect = "Home";
+    let redirect = "TabNavigator";
     let hasColoc = false;
  
     // Si l'utilisateur n'a pas de token de colocation
