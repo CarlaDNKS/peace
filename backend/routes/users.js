@@ -68,63 +68,60 @@ router.post("/signup", (req, res) => {
 });
 
 router.post("/signin", (req, res) => {
-  // Route POST pour la connexion d'un utilisateur existant.
-
-  // Vérification des champs requis
   if (!checkBody(req.body, ["username", "password"])) {
     res.json({ result: false, error: "Missing or empty fields" });
     return;
   }
-
-  // Recherche de l'utilisateur
+ 
   User.findOne({ username: req.body.username }).then((data) => {
-    // Vérification de l'existence de l'utilisateur et du mot de passe
     if (!data || !bcrypt.compareSync(req.body.password, data.password)) {
       res.json({ result: false, error: "User not found or wrong password" });
       return;
     }
-
+ 
+    let redirect = "Home";
+    let hasColoc = false;
+ 
     // Si l'utilisateur n'a pas de token de colocation
     if (!data.colocToken) {
+      redirect = "Choice";
       res.json({
         result: true,
         token: data.token,
         name: data.name,
-        hasColoc: false,
-        redirect: "Choice",
+        hasColoc,
+        redirect,
       });
       return;
     }
-
-    // Recherche de la colocation associée
+ 
+    // Si l'utilisateur a un token de colocation, chercher la coloc
+    hasColoc = true;
     Coloc.findOne({ token: data.colocToken }).then((colocInfo) => {
       if (colocInfo) {
         res.json({
           result: true,
           token: data.token,
           name: data.name,
-          hasColoc: true,
+          hasColoc,
           colocInfo,
-          redirect: "TabNavigator",
+          redirect,
         });
       } else {
         // Le token de colocation existe mais la colocation n'est pas trouvée
-        // On met à jour l'utilisateur pour retirer le token de colocation invalide
-        User.updateOne({ _id: data._id }, { $unset: { colocToken: 1 } }).then(
-          () => {
-            res.json({
-              result: true,
-              token: data.token,
-              name: data.name,
-              hasColoc: false,
-              redirect: "Choice",
-            });
-          }
-        );
+        User.updateOne({ _id: data._id }, { $unset: { colocToken: 1 } }).then(() => {
+          res.json({
+            result: true,
+            token: data.token,
+            name: data.name,
+            hasColoc: false,
+            redirect: "Choice",
+          });
+        });
       }
     });
   });
-});
+ });
 
 router.post("/createcoloc", (req, res) => {
   if (!checkBody(req.body, ["name", "address", "peoples"])) {
